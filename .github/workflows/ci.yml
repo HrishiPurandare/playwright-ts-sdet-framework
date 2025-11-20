@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [16]
+        browser: [chromium, firefox]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - name: Run Playwright tests
+        run: npx playwright test --project=${{ matrix.browser }} --reporter=list
+      - name: Upload Playwright Report
+        if: always()
+        run: npx playwright show-report --output=playwright-report || true
