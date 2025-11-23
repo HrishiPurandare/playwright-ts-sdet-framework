@@ -23,3 +23,9 @@ jobs:
       - name: Upload Playwright Report
         if: always()
         run: npx playwright show-report --output=playwright-report || true
+      # Example CI step for artifacts (e.g., in a YAML file)
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/ # Uploads the entire directory
