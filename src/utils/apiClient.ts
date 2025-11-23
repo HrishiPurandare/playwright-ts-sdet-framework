@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+//import fetch from 'node-fetch';
 import config from '../config/testConfig';
 
 async function apiRequest(method: string, path: string, body?: any) {
