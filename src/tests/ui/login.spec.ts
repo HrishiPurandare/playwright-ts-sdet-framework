@@ -1,15 +1,16 @@
-// src/tests/ui/login.spec.ts
-import { test, expect } from '@playwright/test';
 import config from '../../config/testConfig';
+import { expect, test } from '../../fixtures';
 
-test.describe('Basic UI smoke', () => {
-  test('homepage has expected title or heading', async ({ page }) => {
-    await page.goto(config.baseUrl);
-    // If your baseUrl is an HTML page with <h1>Example Domain</h1>, we check for it.
-    // Adjust selector if your intended site differs.
-    const h1 = await page.locator('h1').first();
-    await expect(h1).toBeVisible();
-    const text = await h1.textContent();
-    expect(text && text.length).toBeGreaterThan(0);
+test.describe('Login', () => {
+  test('valid credentials open the users view', async ({ loginPage, page }) => {
+    await loginPage.login(config.credentials.username, config.credentials.password);
+    await expect(page.getByRole('heading', { name: 'Users' })).toBeVisible();
+    await expect(loginPage.error).toBeHidden();
+  });
+
+  test('wrong password shows an error and stays on the form', async ({ loginPage }) => {
+    await loginPage.login(config.credentials.username, 'wrong-password');
+    await expect(loginPage.error).toHaveText('Invalid username or password');
+    await expect(loginPage.submit).toBeVisible();
   });
 });

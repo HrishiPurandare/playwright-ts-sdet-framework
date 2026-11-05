@@ -1,21 +1,28 @@
 # Playwright TS SDET Framework
 
-Purpose:
-- Demonstrates a professional Playwright + TypeScript test framework with UI, API, and hybrid tests.
-- Designed for CI (GitHub Actions), Docker, parallel execution, traces, and reporting.
+A Playwright and TypeScript test framework with UI, API and hybrid tests. The suite starts its own small demo app, so it has no dependency on third-party sites.
 
-Quickstart:
-1. Install: `npm install`
-2. Run locally: `npx playwright test`
-3. Run in Docker: `docker build -t playwright-sdet . && docker run --rm playwright-sdet`
-4. CI: see .github/workflows/ci.yml
+## Run it
 
-Structure:
-- src/config: runtime config
-- src/fixtures: shared fixtures
-- src/pages: Page Objects
-- src/utils: helpers (apiClient, logger)
-- src/tests: ui, api, integration
+```bash
+npm ci
+npx playwright install chromium firefox
+npm test
+npm run test:report
+```
 
-Why this matters:
-- Shows UI + API hybrid testing, CI, and SDET design patterns.
+Set `BASE_URL` to run against an app that is already running instead of the demo app.
+
+## Structure
+
+- `demo-app/`: dependency-free Node app under test
+- `src/config/`: runtime configuration
+- `src/pages/`: page objects
+- `src/fixtures/`: shared fixtures
+- `src/tests/ui/`: browser tests, including a negative login path
+- `src/tests/api/`: API tests, including validation and 404 paths
+- `src/tests/integration/`: creates data through the API and verifies it in the UI
+
+## CI
+
+`.github/workflows/playwright-ci.yml` type-checks the code, runs the suite on Chromium and Firefox, and uploads the HTML report. Traces, screenshots and video are kept for failures.

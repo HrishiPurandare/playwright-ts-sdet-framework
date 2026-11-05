@@ -1,4 +1,7 @@
 export default {
-  baseUrl: process.env.BASE_URL || 'https://example.com',
-  apiBase: process.env.API_BASE || 'https://reqres.in/api'
+  baseUrl: process.env.BASE_URL || 'http://localhost:3100',
+  credentials: {
+    username: process.env.APP_USERNAME || 'demo',
+    password: process.env.APP_PASSWORD || 'demo-password',
+  },
 };
