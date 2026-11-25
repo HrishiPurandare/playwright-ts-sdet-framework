@@ -56,7 +56,7 @@ Two traps found while writing them: `getByLabel('Beneficiary')` also matched the
 
 **Money as integers.** `src/data/money.ts` turns `"18,240.15"` into `1824015n` (fils, BigInt). The dashboard total and the running-balance chain are compared exactly. With floats, `0.1 + 0.2` is `0.30000000000000004` and a test that rounds can hide the bug it's hunting.
 
-**Known bugs as `test.fail()`.** Two tests describe the *right* behaviour and are marked `test.fail(true, reason)`. They pass while the bug exists, and fail the day it's fixed, which tells you to remove the marker. Better than `test.skip` (silently never runs) or a red build everyone learns to ignore.
+**Known bugs as `test.fail()`.** Two tests described the *right* behaviour and were marked `test.fail(true, reason)`. They pass while the bug exists, and fail the day it's fixed, which tells you to remove the marker. Better than `test.skip` (silently never runs) or a red build everyone learns to ignore. That's exactly what happened: NovaBank 1.2.0 fixed both bugs, both tests went red in both browsers, and the markers were removed. One catch: the session bug was a race that showed up only ~15 runs in 16, so its `test.fail()` occasionally went red with no fix at all. A `test.fail()` on a timing bug is itself flaky; fix the bug soon.
 
 **Preconditions out loud.** The limit test needs an account with more than AED 10,000.01, or the bank answers "insufficient funds" first and the test passes or fails for the wrong reason. It picks the richest account and asserts the precondition with a message. The bank's own smoke test had exactly this hidden assumption (found today, fixed in novabank).
 
@@ -119,8 +119,8 @@ Each one should make a specific test fail. Predict which before you run it.
 
 | Bug | Where | Test |
 |---|---|---|
-| "Total balance (1 accounts)" | novabank `pages/accounts/accounts.html` | accounts.spec "the total says 1 account" (`test.fail`) |
-| Expired session loses the page (`returnUrl=/`) | novabank `core/auth.interceptor.ts`: `router.url` read during the first navigation | login.spec "returns to the page" (`test.fail`) |
+| "Total balance (1 accounts)" | novabank `pages/accounts/accounts.html` | accounts.spec "the total says 1 account" (fixed in NovaBank 1.2.0) |
+| Expired session loses the page (`returnUrl=/`) | novabank `core/auth.interceptor.ts`: `router.url` read during the first navigation | login.spec "returns to the page" (fixed in NovaBank 1.2.0: `currentPlace()` uses the navigation in progress, or the browser address before the first navigation) |
 | Smoke test assumed the first account holds > AED 10,000.01 | novabank `e2e/smoke.py` | fixed there |
 
 ## 8. Tested the tests
@@ -148,5 +148,5 @@ Why the last one survived: Angular's `router.navigateByUrl('https://evil.example
 8. `cleanupPayees` deletes by name. What could go wrong, and why is it acceptable here?
 9. What's the difference between `test.fail()`, `test.skip()` and `test.fixme()`? When is each right?
 10. Explain "equivalent mutant" with today's example.
-11. The CI tests novabank `v1.1.0`, not `main`. Give one advantage and one risk.
+11. The CI tests novabank `v1.2.0`, not `main`. Give one advantage and one risk.
 12. Why `timezoneId: 'Asia/Dubai'` in the config?

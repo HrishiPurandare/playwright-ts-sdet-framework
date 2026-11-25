@@ -65,12 +65,9 @@ test.describe('A customer with one account', () => {
   });
 
   test('the total says "1 account", not "1 accounts"', async ({ accountsPage }) => {
-    // Known bug, found by this suite. test.fail() keeps the run green while the bug exists and
-    // turns red the day it's fixed, as a reminder to remove this line.
-    test.fail(true, 'novabank: accounts.html always pluralises "accounts"');
+    // Bug found by this suite (kept as test.fail() until NovaBank 1.2.0 fixed it).
     await accountsPage.open();
     const label = accountsPage.page.getByTestId('total-AED').locator('.muted');
-    await expect(label).toContainText('Total balance'); // the page itself works...
-    await expect(label).toHaveText('Total balance (1 account)', { timeout: 2_000 }); // ...the wording doesn't
+    await expect(label).toHaveText('Total balance (1 account)');
   });
 });

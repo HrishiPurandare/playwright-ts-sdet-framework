@@ -17,7 +17,7 @@ It's not a demo-site suite: the app has real business rules (limits, idempotency
 | Run time | about 1 minute locally, 4 workers |
 | Stability | 204 test runs in a row (`--repeat-each=3`, 4 workers) with no flaky test |
 | Tested the tests | 4 bugs planted in the app: 3 caught, 1 couldn't be (see [LEARN §8](LEARN.md#8-tested-the-tests)) |
-| Bugs found in the app | 2 (kept as `test.fail` until fixed, see below) |
+| Bugs found in the app | 2, both fixed in NovaBank 1.2.0 (kept as `test.fail` until then, see below) |
 
 ## How it fits together
 
@@ -74,8 +74,8 @@ npx playwright show-report
 
 ## Bugs the suite found
 
-1. **Dashboard says "1 accounts"** for a customer with one account. Kept as a `test.fail()`: green while the bug exists, red the day it's fixed.
-2. **An expired session loses the customer's place.** Opening `/beneficiaries` with an expired login sends you to `/login?returnUrl=/`, so after logging in you land on Accounts. The app's first call (`/api/auth/me/`) fails before the router has finished navigating, and the interceptor reads `router.url` too early. Also a `test.fail()`.
+1. **Dashboard says "1 accounts"** for a customer with one account. Kept as a `test.fail()` (green while the bug existed); it turned red the day NovaBank 1.2.0 fixed it, and the marker was removed.
+2. **An expired session loses the customer's place.** Opening `/beneficiaries` with an expired login sends you to `/login?returnUrl=/`, so after logging in you land on Accounts. The app's first call (`/api/auth/me/`) fails before the router has finished navigating, and the interceptor read `router.url` too early. It reproduced about 15 runs in 16, so the `test.fail()` marker itself was flaky. Fixed in NovaBank 1.2.0 (the interceptor uses the navigation in progress, or the address the user opened); 80 repeat runs green since.
 3. **The bank's own smoke test had a hidden precondition.** It tried AED 10,000.01 from the first account and expected the limit error; once that account held less than AED 10,000, the bank (correctly) said "insufficient funds" first. Fixed in novabank: pick the richest account and state the precondition. This suite's limit test does the same.
 
 ## Design decisions
@@ -86,7 +86,7 @@ npx playwright show-report
 - **Parallel-safe by construction.** Every beneficiary has a unique name and a computed valid IBAN, every transfer a unique remark; tests check *their own* rows, never "the balance is now X".
 - **Network mocking only where reality can't be arranged.** The lost reply uses `route.fetch()` (the real bank moves the money) then `route.abort()`; the expired session mocks 401s so the shared refresh token is never rotated.
 - **Money is never a float.** Amounts are compared as integer fils (`BigInt`), so a one-fils error fails.
-- **The CI tests a released bank** (`v1.1.0` by default; any ref through "Run workflow"), so a red build means the tests changed, not the app.
+- **The CI tests a released bank** (`v1.2.0` by default; any ref through "Run workflow"), so a red build means the tests changed, not the app.
 
 ## CI
 

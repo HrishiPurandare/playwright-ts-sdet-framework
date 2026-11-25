@@ -11,7 +11,7 @@ on:
     inputs:
       novabank_ref:
         description: novabank tag, branch or commit to test
-        default: v1.1.0
+        default: v1.2.0
 
 permissions:
   contents: read
@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 25
     env:
       # A released version by default: a red build then means the tests changed, not the bank.
-      NOVABANK_REF: ${{ inputs.novabank_ref || 'v1.1.0' }}
+      NOVABANK_REF: ${{ inputs.novabank_ref || 'v1.2.0' }}
     steps:
       - uses: actions/checkout@v4
 

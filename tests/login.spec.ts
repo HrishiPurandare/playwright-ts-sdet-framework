@@ -93,13 +93,13 @@ test.describe('Leaving', () => {
   });
 
   test('after an expired session, logging in returns to the page the customer was on', async ({ page }) => {
-    // Known bug, found by this suite: the app's first call (/api/auth/me/) fails before the router
-    // has finished navigating, so router.url is still "/" and the customer lands on Accounts.
-    test.fail(true, 'novabank: auth.interceptor.ts uses router.url during the first navigation');
+    // Bug found by this suite (kept as test.fail() until NovaBank 1.2.0 fixed it): the app's first
+    // call (/api/auth/me/) can fail before the router has finished navigating, when router.url is
+    // still "/". It failed about 15 runs in 16, so run this one with --repeat-each before trusting it.
     await expireSession(page);
     await page.goto('/beneficiaries');
     await expect(page.getByTestId('session-expired')).toBeVisible();
-    await expect(page).toHaveURL(/returnUrl=%2Fbeneficiaries/, { timeout: 2_000 });
+    await expect(page).toHaveURL(/returnUrl=%2Fbeneficiaries/);
   });
 });
 
