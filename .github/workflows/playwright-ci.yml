@@ -1,19 +1,51 @@
 name: Playwright CI
 
+# Starts the real Ledgerly Bank (Docker Compose: Postgres, Django API, Angular on nginx, Mailpit)
+# and runs the UI suite against it in Chromium and Firefox.
+
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      ledgerly_ref:
+        description: ledgerly-bank tag, branch or commit to test
+        default: v1.0.0
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
+  e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # A released version by default: a red build then means the tests changed, not the bank.
+      LEDGERLY_REF: ${{ inputs.ledgerly_ref || 'v1.0.0' }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check out Ledgerly Bank (${{ env.LEDGERLY_REF }})
+        uses: actions/checkout@v4
+        with:
+          repository: HrishiPurandare/ledgerly-bank
+          ref: ${{ env.LEDGERLY_REF }}
+          path: ledgerly-bank
+
+      - name: Start the bank
+        working-directory: ledgerly-bank
+        run: |
+          echo "DJANGO_SECRET_KEY=$(openssl rand -base64 48 | tr -d '\n/+=')" > .env
+          docker compose up --build --wait --wait-timeout 300
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22.12'
           cache: npm
 
       - run: npm ci
@@ -24,12 +56,23 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox
 
-      - name: Run Playwright tests
+      - name: Run the UI suite
         run: npx playwright test
 
-      - name: Upload Playwright report
-        if: always()
+      - name: Upload the HTML report (traces, screenshots, videos of failures)
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
+          retention-days: 14
+
+      - name: Bank logs
+        if: failure()
+        working-directory: ledgerly-bank
+        run: docker compose logs --no-color --tail 200
+
+      - name: Stop the bank
+        if: always()
+        working-directory: ledgerly-bank
+        run: docker compose down -v
