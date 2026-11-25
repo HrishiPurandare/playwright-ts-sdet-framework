@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "commonjs",
     "moduleResolution": "node",
     "strict": true,
     "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src", "playwright.config.ts"]
+  "include": ["src", "tests", "playwright.config.ts"]
 }

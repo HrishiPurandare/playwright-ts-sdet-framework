@@ -1,28 +1,45 @@
-import { defineConfig } from '@playwright/test';
-import config from './src/config/testConfig';
+import { defineConfig, devices } from '@playwright/test';
 
+import { env } from './src/config/env';
+
+/**
+ * Runs against a running Ledgerly Bank (docker compose up in ledgerly-bank). The tests don't start
+ * the bank themselves: the same suite can then point at a laptop, CI or a shared test environment.
+ */
 export default defineConfig({
-  testDir: 'src/tests',
+  testDir: 'tests',
   timeout: 30_000,
+  expect: { timeout: 5_000 },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
+  // One retry in CI, and a retry that passes is reported as "flaky", not hidden.
   retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 2 : undefined,
+  reporter: process.env.CI
+    ? [['list'], ['html', { open: 'never' }], ['github']]
+    : [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: config.baseUrl,
-    trace: 'on-first-retry',
-    video: 'retain-on-failure',
+    baseURL: env.baseUrl,
+    testIdAttribute: 'data-testid',
+    trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    timezoneId: 'Asia/Dubai', // the bank's customers' time, whatever the CI machine's clock says
+    locale: 'en-AE',
   },
   projects: [
-    { name: 'chromium', use: { browserName: 'chromium' } },
-    { name: 'firefox', use: { browserName: 'firefox' } },
+    { name: 'setup', testMatch: /auth\.setup\.ts/, use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+      dependencies: ['setup'],
+      // Real logins run once (Chromium): the bank allows 10 a minute, and the form isn't browser-specific.
+      grepInvert: /@real-login/,
+    },
   ],
-  reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
-  webServer: process.env.BASE_URL
-    ? undefined
-    : {
-        command: 'node demo-app/server.js',
-        url: config.baseUrl,
-        reuseExistingServer: !process.env.CI,
-      },
 });

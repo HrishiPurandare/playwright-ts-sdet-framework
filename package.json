@@ -1,15 +1,21 @@
 {
   "name": "playwright-ts-sdet-framework",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
+  "description": "Playwright + TypeScript UI tests for Ledgerly Bank (github.com/HrishiPurandare/ledgerly-bank)",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "test": "playwright test",
-    "test:report": "playwright show-report",
+    "test:chromium": "playwright test --project=chromium",
+    "test:headed": "playwright test --project=chromium --headed --workers=1",
+    "report": "playwright show-report",
     "typecheck": "tsc"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
-    "@types/node": "^24.10.1",
-    "typescript": "^4.9.5"
+    "@playwright/test": "1.65.0",
+    "@types/node": "22.20.5",
+    "typescript": "5.9.3"
   }
 }
