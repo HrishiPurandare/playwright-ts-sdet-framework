@@ -11,7 +11,7 @@ export class LoginPage {
   readonly sessionExpired: Locator;
 
   constructor(readonly page: Page) {
-    this.heading = page.getByRole('heading', { name: 'Log in to Ledgerly Bank' });
+    this.heading = page.getByRole('heading', { name: 'Log in to NovaBank' });
     // Found by label, as a screen reader would: if the <label for> breaks, these tests fail.
     this.email = page.getByLabel('Email');
     this.password = page.getByLabel('Password');

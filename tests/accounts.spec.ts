@@ -67,7 +67,7 @@ test.describe('A customer with one account', () => {
   test('the total says "1 account", not "1 accounts"', async ({ accountsPage }) => {
     // Known bug, found by this suite. test.fail() keeps the run green while the bug exists and
     // turns red the day it's fixed, as a reminder to remove this line.
-    test.fail(true, 'ledgerly-bank: accounts.html always pluralises "accounts"');
+    test.fail(true, 'novabank: accounts.html always pluralises "accounts"');
     await accountsPage.open();
     const label = accountsPage.page.getByTestId('total-AED').locator('.muted');
     await expect(label).toContainText('Total balance'); // the page itself works...

@@ -6,8 +6,8 @@ import { env } from '../config/env';
 import { CustomerKey, storageStatePath } from '../data/customers';
 import type { Account, Beneficiary, Page, Transaction, Transfer } from './models';
 
-/** The key the Angular app keeps its tokens under (ledgerly-bank frontend/src/app/core/auth.service.ts). */
-export const AUTH_STORAGE_KEY = 'ledgerly.auth';
+/** The key the Angular app keeps its tokens under (novabank frontend/src/app/core/auth.service.ts). */
+export const AUTH_STORAGE_KEY = 'novabank.auth';
 
 /**
  * Reads the access token out of a saved login instead of logging in again.
@@ -31,15 +31,15 @@ export function accessTokenFor(customer: CustomerKey): string {
  * The bank's REST API, for test data: set up through the API (fast, exact), check through the UI
  * (what the customer sees). Never used to drive the step a UI test is about.
  */
-export class LedgerlyApi {
+export class NovaBankApi {
   private constructor(private readonly http: APIRequestContext) {}
 
-  static async as(customer: CustomerKey): Promise<LedgerlyApi> {
+  static async as(customer: CustomerKey): Promise<NovaBankApi> {
     const http = await request.newContext({
       baseURL: env.baseUrl,
       extraHTTPHeaders: { Authorization: `Bearer ${accessTokenFor(customer)}` },
     });
-    return new LedgerlyApi(http);
+    return new NovaBankApi(http);
   }
 
   async dispose(): Promise<void> {

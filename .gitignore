@@ -5,5 +5,5 @@ blob-report/
 # Saved logins (access + refresh tokens). Made fresh by the setup project on every run.
 .auth/
 # The bank, when checked out next to the tests (CI does this)
-ledgerly-bank/
+novabank/
 .DS_Store

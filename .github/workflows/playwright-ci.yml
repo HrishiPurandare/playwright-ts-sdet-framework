@@ -1,6 +1,6 @@
 name: Playwright CI
 
-# Starts the real Ledgerly Bank (Docker Compose: Postgres, Django API, Angular on nginx, Mailpit)
+# Starts the real NovaBank (Docker Compose: Postgres, Django API, Angular on nginx, Mailpit)
 # and runs the UI suite against it in Chromium and Firefox.
 
 on:
@@ -9,9 +9,9 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      ledgerly_ref:
-        description: ledgerly-bank tag, branch or commit to test
-        default: v1.0.0
+      novabank_ref:
+        description: novabank tag, branch or commit to test
+        default: v1.1.0
 
 permissions:
   contents: read
@@ -26,19 +26,19 @@ jobs:
     timeout-minutes: 25
     env:
       # A released version by default: a red build then means the tests changed, not the bank.
-      LEDGERLY_REF: ${{ inputs.ledgerly_ref || 'v1.0.0' }}
+      NOVABANK_REF: ${{ inputs.novabank_ref || 'v1.1.0' }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check out Ledgerly Bank (${{ env.LEDGERLY_REF }})
+      - name: Check out NovaBank (${{ env.NOVABANK_REF }})
         uses: actions/checkout@v4
         with:
-          repository: HrishiPurandare/ledgerly-bank
-          ref: ${{ env.LEDGERLY_REF }}
-          path: ledgerly-bank
+          repository: HrishiPurandare/novabank
+          ref: ${{ env.NOVABANK_REF }}
+          path: novabank
 
       - name: Start the bank
-        working-directory: ledgerly-bank
+        working-directory: novabank
         run: |
           echo "DJANGO_SECRET_KEY=$(openssl rand -base64 48 | tr -d '\n/+=')" > .env
           docker compose up --build --wait --wait-timeout 300
@@ -69,10 +69,10 @@ jobs:
 
       - name: Bank logs
         if: failure()
-        working-directory: ledgerly-bank
+        working-directory: novabank
         run: docker compose logs --no-color --tail 200
 
       - name: Stop the bank
         if: always()
-        working-directory: ledgerly-bank
+        working-directory: novabank
         run: docker compose down -v

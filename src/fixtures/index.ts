@@ -1,6 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 
-import { LedgerlyApi } from '../api/ledgerly-api';
+import { NovaBankApi } from '../api/novabank-api';
 import { otpFor } from '../api/mailpit';
 import type { Beneficiary } from '../api/models';
 import { CUSTOMERS, CustomerKey, storageStatePath } from '../data/customers';
@@ -18,9 +18,9 @@ interface Options {
 }
 
 interface Fixtures {
-  api: LedgerlyApi;
+  api: NovaBankApi;
   /** The API as someone else, e.g. to find another customer's account id. */
-  apiAs: (customer: CustomerKey) => Promise<LedgerlyApi>;
+  apiAs: (customer: CustomerKey) => Promise<NovaBankApi>;
   /** A beneficiary created and confirmed through the API (code read from Mailpit), removed afterwards. */
   confirmedPayee: Beneficiary;
   /** Names of beneficiaries a test adds through the UI; removed after the test, pass or fail. */
@@ -42,15 +42,15 @@ export const test = base.extend<Options & Fixtures>({
   },
 
   api: async ({ customer }, use) => {
-    const api = await LedgerlyApi.as(customer);
+    const api = await NovaBankApi.as(customer);
     await use(api);
     await api.dispose();
   },
 
   apiAs: async ({}, use) => {
-    const opened: LedgerlyApi[] = [];
+    const opened: NovaBankApi[] = [];
     await use(async (customer) => {
-      const api = await LedgerlyApi.as(customer);
+      const api = await NovaBankApi.as(customer);
       opened.push(api);
       return api;
     });

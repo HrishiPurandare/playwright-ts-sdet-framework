@@ -107,7 +107,7 @@ test.describe('Statement', () => {
   });
 
   test("another customer's account looks exactly like one that doesn't exist", async ({ statementPage, apiAs }) => {
-    // 404, not 403: a 403 would confirm the account exists (ledgerly-bank returns 404 for both).
+    // 404, not 403: a 403 would confirm the account exists (novabank returns 404 for both).
     const [omars] = await (await apiAs('omar')).accounts();
     await statementPage.open(omars.id);
     await expect(statementPage.notFound).toBeVisible();

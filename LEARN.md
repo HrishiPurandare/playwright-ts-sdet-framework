@@ -4,11 +4,11 @@ This is the Playwright framework you'll be asked about most in SDET interviews. 
 
 Each part follows the same loop: key concepts → run it → read it in order → break it → explain it → quiz.
 
-Before you start: the bank must be running (`docker compose up --build --wait` in `ledgerly-bank`). Stop Ollama first (8 GB Mac).
+Before you start: the bank must be running (`docker compose up --build --wait` in `novabank`). Stop Ollama first (8 GB Mac).
 
 ---
 
-# Part 1: retargeting the framework to Ledgerly Bank (Forge90 day 20)
+# Part 1: retargeting the framework to NovaBank (Forge90 day 20)
 
 Budget: two 2-hour sessions, plus the quiz (45 min).
 
@@ -21,7 +21,7 @@ Budget: two 2-hour sessions, plus the quiz (45 min).
 - `chromium` and `firefox` depend on `setup`, so they always start after it.
 - Firefox has `grepInvert: /@real-login/`: the 4 tests that call the real login endpoint run in Chromium only.
 
-**Storage state.** Playwright can save a browser context's cookies and localStorage, and start a new context from that file. Ledgerly keeps its JWTs in localStorage (`ledgerly.auth`), so a saved file *is* a logged-in customer. Every test then starts logged in, without typing a password.
+**Storage state.** Playwright can save a browser context's cookies and localStorage, and start a new context from that file. NovaBank keeps its JWTs in localStorage (`novabank.auth`), so a saved file *is* a logged-in customer. Every test then starts logged in, without typing a password.
 
 Why it matters here: the bank allows **10 logins a minute** (`AUTH_THROTTLE_RATE`). Logging in per test would hit `429 Too Many Requests` within seconds. Per run: 3 setup logins plus 4 real-login tests = 7.
 
@@ -35,7 +35,7 @@ Why it matters here: the bank allows **10 logins a minute** (`AUTH_THROTTLE_RATE
 
 Splitting work by persona is what makes parallel runs safe: two workers never fight over the same data.
 
-**API for setup, browser for the check.** `LedgerlyApi` reads the access token out of the saved login (`accessTokenFor`) instead of logging in again. Tests use it to *arrange* data (a confirmed beneficiary) and to *verify* the result exactly (one debit, one credit). The step the test is about always goes through the UI.
+**API for setup, browser for the check.** `NovaBankApi` reads the access token out of the saved login (`accessTokenFor`) instead of logging in again. Tests use it to *arrange* data (a confirmed beneficiary) and to *verify* the result exactly (one debit, one credit). The step the test is about always goes through the UI.
 
 **Fixtures with teardown.** `confirmedPayee` creates a beneficiary through the API, reads the code from Mailpit, confirms it, hands it to the test, and deletes it afterwards, pass or fail. `cleanupPayees` does the same for beneficiaries a test adds through the UI (by name). The bank allows 100 beneficiaries per customer; without cleanup, local runs would hit that cap.
 
@@ -58,7 +58,7 @@ Two traps found while writing them: `getByLabel('Beneficiary')` also matched the
 
 **Known bugs as `test.fail()`.** Two tests describe the *right* behaviour and are marked `test.fail(true, reason)`. They pass while the bug exists, and fail the day it's fixed, which tells you to remove the marker. Better than `test.skip` (silently never runs) or a red build everyone learns to ignore.
 
-**Preconditions out loud.** The limit test needs an account with more than AED 10,000.01, or the bank answers "insufficient funds" first and the test passes or fails for the wrong reason. It picks the richest account and asserts the precondition with a message. The bank's own smoke test had exactly this hidden assumption (found today, fixed in ledgerly-bank).
+**Preconditions out loud.** The limit test needs an account with more than AED 10,000.01, or the bank answers "insufficient funds" first and the test passes or fails for the wrong reason. It picks the richest account and asserts the precondition with a message. The bank's own smoke test had exactly this hidden assumption (found today, fixed in novabank).
 
 ## 2. Run it
 
@@ -78,7 +78,7 @@ Open a trace: run a test, make it fail (see Break it), then `npx playwright show
 1. `playwright.config.ts`: projects, dependencies, `grepInvert`, `timezoneId`.
 2. `src/data/customers.ts`, then `tests/auth.setup.ts`: how a login becomes a file.
 3. `src/fixtures/index.ts`: `customer`, `storageState`, `api`, `confirmedPayee`, `cleanupPayees`.
-4. `src/api/ledgerly-api.ts` and `src/api/mailpit.ts`.
+4. `src/api/novabank-api.ts` and `src/api/mailpit.ts`.
 5. `src/pages/transfer-page.ts` (the most complex page object), then the others.
 6. `tests/transfer.spec.ts`: read "the money moved but the answer was lost" line by line.
 7. `tests/statement.spec.ts`: the running-balance test.
@@ -119,9 +119,9 @@ Each one should make a specific test fail. Predict which before you run it.
 
 | Bug | Where | Test |
 |---|---|---|
-| "Total balance (1 accounts)" | ledgerly-bank `pages/accounts/accounts.html` | accounts.spec "the total says 1 account" (`test.fail`) |
-| Expired session loses the page (`returnUrl=/`) | ledgerly-bank `core/auth.interceptor.ts`: `router.url` read during the first navigation | login.spec "returns to the page" (`test.fail`) |
-| Smoke test assumed the first account holds > AED 10,000.01 | ledgerly-bank `e2e/smoke.py` | fixed there |
+| "Total balance (1 accounts)" | novabank `pages/accounts/accounts.html` | accounts.spec "the total says 1 account" (`test.fail`) |
+| Expired session loses the page (`returnUrl=/`) | novabank `core/auth.interceptor.ts`: `router.url` read during the first navigation | login.spec "returns to the page" (`test.fail`) |
+| Smoke test assumed the first account holds > AED 10,000.01 | novabank `e2e/smoke.py` | fixed there |
 
 ## 8. Tested the tests
 
@@ -141,12 +141,12 @@ Why the last one survived: Angular's `router.navigateByUrl('https://evil.example
 1. What does `dependencies: ['setup']` guarantee, and what doesn't it guarantee?
 2. Why does the Firefox project skip `@real-login` tests? What would you lose if Chromium skipped them too?
 3. The access token lives 15 minutes and refresh tokens rotate. What would break if the suite took 20 minutes, and why would it break *only some* tests?
-4. Why does `LedgerlyApi` read the token from `.auth/*.json` instead of calling `/api/auth/login/`?
+4. Why does `NovaBankApi` read the token from `.auth/*.json` instead of calling `/api/auth/login/`?
 5. In the lost-reply test, why `route.fetch()` and not `route.abort()` on its own? What would the test prove with `abort()` alone?
 6. Why is the expired-session test mocked, while the wrong-password test isn't?
 7. Give two reasons the balance tests run as Lina.
 8. `cleanupPayees` deletes by name. What could go wrong, and why is it acceptable here?
 9. What's the difference between `test.fail()`, `test.skip()` and `test.fixme()`? When is each right?
 10. Explain "equivalent mutant" with today's example.
-11. The CI tests ledgerly-bank `v1.0.0`, not `main`. Give one advantage and one risk.
+11. The CI tests novabank `v1.1.0`, not `main`. Give one advantage and one risk.
 12. Why `timezoneId: 'Asia/Dubai'` in the config?

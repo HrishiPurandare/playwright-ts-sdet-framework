@@ -2,7 +2,7 @@
   "name": "playwright-ts-sdet-framework",
   "version": "0.3.0",
   "private": true,
-  "description": "Playwright + TypeScript UI tests for Ledgerly Bank (github.com/HrishiPurandare/ledgerly-bank)",
+  "description": "Playwright + TypeScript UI tests for NovaBank (github.com/HrishiPurandare/novabank)",
   "engines": {
     "node": ">=22.12"
   },

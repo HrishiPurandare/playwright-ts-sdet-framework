@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { env } from './src/config/env';
 
 /**
- * Runs against a running Ledgerly Bank (docker compose up in ledgerly-bank). The tests don't start
+ * Runs against a running NovaBank (docker compose up in novabank). The tests don't start
  * the bank themselves: the same suite can then point at a laptop, CI or a shared test environment.
  */
 export default defineConfig({

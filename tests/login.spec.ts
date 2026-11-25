@@ -17,7 +17,7 @@ test.describe('Logging in', () => {
 
     await expect(page).toHaveURL(/\/accounts$/);
     await expect(shell.userName).toHaveText(CUSTOMERS.omar.name);
-    await expect(page).toHaveTitle('Accounts · Ledgerly Bank');
+    await expect(page).toHaveTitle('Accounts · NovaBank');
   });
 
   test('a wrong password is refused and the form stays', { tag: '@real-login' }, async ({ loginPage, page }) => {
@@ -77,7 +77,7 @@ test.describe('Leaving', () => {
 
     await shell.logout();
     await expect(loginPage.heading).toBeVisible();
-    expect(await page.evaluate(() => localStorage.getItem('ledgerly.auth'))).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem('novabank.auth'))).toBeNull();
 
     await page.goto('/accounts');
     await expect(page).toHaveURL(/\/login\?returnUrl=%2Faccounts/);
@@ -89,13 +89,13 @@ test.describe('Leaving', () => {
 
     await expect(loginPage.sessionExpired).toBeVisible();
     await expect(page).toHaveURL(/\/login\?.*expired=1/);
-    expect(await page.evaluate(() => localStorage.getItem('ledgerly.auth'))).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem('novabank.auth'))).toBeNull();
   });
 
   test('after an expired session, logging in returns to the page the customer was on', async ({ page }) => {
     // Known bug, found by this suite: the app's first call (/api/auth/me/) fails before the router
     // has finished navigating, so router.url is still "/" and the customer lands on Accounts.
-    test.fail(true, 'ledgerly-bank: auth.interceptor.ts uses router.url during the first navigation');
+    test.fail(true, 'novabank: auth.interceptor.ts uses router.url during the first navigation');
     await expireSession(page);
     await page.goto('/beneficiaries');
     await expect(page.getByTestId('session-expired')).toBeVisible();

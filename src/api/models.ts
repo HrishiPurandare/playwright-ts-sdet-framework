@@ -1,5 +1,5 @@
 /**
- * The parts of the Ledgerly API the tests use (full contract: ledgerly-bank backend/openapi.yaml).
+ * The parts of the NovaBank API the tests use (full contract: novabank backend/openapi.yaml).
  * Money is a string like "1250.00", never a number: compare it with src/data/money.ts.
  */
 

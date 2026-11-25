@@ -5,7 +5,7 @@
 ![Playwright](https://img.shields.io/badge/Playwright-1.65-2ead33)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-End-to-end UI tests for **[Ledgerly Bank](https://github.com/HrishiPurandare/ledgerly-bank)**, a fictional UAE bank (Angular + Django + Postgres) built to be tested. The suite drives a real browser against the real stack in Docker: logins, statements, beneficiaries with emailed one-time codes, and money transfers, including what happens when the network drops a reply after the money has moved.
+End-to-end UI tests for **[NovaBank](https://github.com/HrishiPurandare/novabank)**, a fictional UAE bank (Angular + Django + Postgres) built to be tested. The suite drives a real browser against the real stack in Docker: logins, statements, beneficiaries with emailed one-time codes, and money transfers, including what happens when the network drops a reply after the money has moved.
 
 It's not a demo-site suite: the app has real business rules (limits, idempotency, IBAN check digits, owner-only data), so the tests have real things to prove.
 
@@ -26,10 +26,10 @@ flowchart LR
   subgraph suite[This repo]
     setup[auth.setup.ts<br/>1 UI login per customer] -->|.auth/*.json| specs[specs<br/>login, accounts, statement,<br/>beneficiaries, transfer]
     specs --> pages[page objects]
-    specs --> api[LedgerlyApi<br/>test data + checks]
+    specs --> api[NovaBankApi<br/>test data + checks]
     specs --> mail[Mailpit reader<br/>one-time codes]
   end
-  subgraph bank[Ledgerly Bank: docker compose]
+  subgraph bank[NovaBank: docker compose]
     web[Angular on nginx :8080] --> django[Django API] --> db[(Postgres)]
     django -->|SMTP| mailpit[Mailpit :8025]
   end
@@ -42,7 +42,7 @@ flowchart LR
 src/
   config/env.ts          BASE_URL, MAILPIT_URL (http(s) only)
   data/                  customers (personas), IBAN generator, money in fils (BigInt)
-  api/                   LedgerlyApi (REST client), Mailpit OTP reader, API types
+  api/                   NovaBankApi (REST client), Mailpit OTP reader, API types
   pages/                 one page object per screen + the app shell
   fixtures/index.ts      `customer` option, saved login, api, confirmedPayee, cleanup
 tests/
@@ -52,7 +52,7 @@ tests/
 
 ## Run it
 
-Start the bank (in a checkout of [ledgerly-bank](https://github.com/HrishiPurandare/ledgerly-bank), see its README), then:
+Start the bank (in a checkout of [novabank](https://github.com/HrishiPurandare/novabank), see its README), then:
 
 ```bash
 npm ci && npx playwright install chromium firefox
@@ -76,7 +76,7 @@ npx playwright show-report
 
 1. **Dashboard says "1 accounts"** for a customer with one account. Kept as a `test.fail()`: green while the bug exists, red the day it's fixed.
 2. **An expired session loses the customer's place.** Opening `/beneficiaries` with an expired login sends you to `/login?returnUrl=/`, so after logging in you land on Accounts. The app's first call (`/api/auth/me/`) fails before the router has finished navigating, and the interceptor reads `router.url` too early. Also a `test.fail()`.
-3. **The bank's own smoke test had a hidden precondition.** It tried AED 10,000.01 from the first account and expected the limit error; once that account held less than AED 10,000, the bank (correctly) said "insufficient funds" first. Fixed in ledgerly-bank: pick the richest account and state the precondition. This suite's limit test does the same.
+3. **The bank's own smoke test had a hidden precondition.** It tried AED 10,000.01 from the first account and expected the limit error; once that account held less than AED 10,000, the bank (correctly) said "insufficient funds" first. Fixed in novabank: pick the richest account and state the precondition. This suite's limit test does the same.
 
 ## Design decisions
 
@@ -86,15 +86,15 @@ npx playwright show-report
 - **Parallel-safe by construction.** Every beneficiary has a unique name and a computed valid IBAN, every transfer a unique remark; tests check *their own* rows, never "the balance is now X".
 - **Network mocking only where reality can't be arranged.** The lost reply uses `route.fetch()` (the real bank moves the money) then `route.abort()`; the expired session mocks 401s so the shared refresh token is never rotated.
 - **Money is never a float.** Amounts are compared as integer fils (`BigInt`), so a one-fils error fails.
-- **The CI tests a released bank** (`v1.0.0` by default; any ref through "Run workflow"), so a red build means the tests changed, not the app.
+- **The CI tests a released bank** (`v1.1.0` by default; any ref through "Run workflow"), so a red build means the tests changed, not the app.
 
 ## CI
 
-`.github/workflows/playwright-ci.yml` checks out ledgerly-bank, starts it with Docker Compose, type-checks, runs the suite in Chromium and Firefox, and uploads the HTML report (with traces, screenshots and videos of any failure).
+`.github/workflows/playwright-ci.yml` checks out novabank, starts it with Docker Compose, type-checks, runs the suite in Chromium and Firefox, and uploads the HTML report (with traces, screenshots and videos of any failure).
 
 ## Roadmap
 
-- [x] Retarget from a demo app to Ledgerly Bank: personas with saved logins, page objects, API-seeded data, Mailpit, network mocking
+- [x] Retarget from a demo app to NovaBank: personas with saved logins, page objects, API-seeded data, Mailpit, network mocking
 - [ ] Accessibility checks with axe-core on every screen
 - [ ] Visual regression for the dashboard and statement
 - [ ] ESLint + Prettier, sharding with a merged report, report on GitHub Pages

@@ -16,7 +16,7 @@ export function asTyped(iban: string): string {
   return iban.toLowerCase().replace(/(.{4})/g, '$1 ').trim();
 }
 
-/** Bank 033 is "another UAE bank" in Ledgerly, so transfers to it are LOCAL and make a pacs.008. */
+/** Bank 033 is "another UAE bank" in NovaBank, so transfers to it are LOCAL and make a pacs.008. */
 export const OTHER_BANK = '033';
 
 let counter = 0;
